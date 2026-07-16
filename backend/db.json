@@ -1,0 +1,23 @@
+{
+  "progress": [
+    {
+      "id": 1,
+      "checked": {
+        "history|6|0|0": true,
+        "history|7|0|1": true,
+        "history|10|0|2": true,
+        "history|10|0|3": true,
+        "history|11|0|3": true,
+        "history|11|0|5": true,
+        "polity|6|0|0": true,
+        "polity|7|0|3": true,
+        "history|6|0|2": true,
+        "history|8|0|3": true
+      },
+      "revisions": {},
+      "priority": {},
+      "chapterNotes": {},
+      "subjectNotes": {}
+    }
+  ]
+}

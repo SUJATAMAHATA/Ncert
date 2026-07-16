@@ -614,6 +614,8 @@ const CSS = `
 }
 `;
 
+let fetchPromise = null;
+
 export default function App() {
   const [checked, setChecked] = useState({});
   const [revisions, setRevisions] = useState({});
@@ -632,6 +634,7 @@ export default function App() {
   const saveTimer = useRef(null);
   const modalTextareaRef = useRef(null);
   const initialPersistRef = useRef(true);
+  const lastSavedDataRef = useRef("");
 
   // "save" ping, mirrors the original save indicator that fired on every mutation
   function pingSave() {
@@ -664,17 +667,36 @@ export default function App() {
   useEffect(() => {
     const loadProgress = async () => {
       try {
-        const res = await fetch(PROGRESS_URL);
-        if (!res.ok) throw new Error("No saved progress");
-        const data = await res.json();
-        setChecked(data.checked || {});
-        setRevisions(data.revisions || {});
-        setPriority(data.priority || {});
-        setChapterNotes(data.chapterNotes || {});
-        setSubjectNotes(data.subjectNotes || {});
+        if (!fetchPromise) {
+          fetchPromise = fetch(PROGRESS_URL).then(res => {
+            if (!res.ok) throw new Error("No saved progress");
+            return res.json();
+          });
+        }
+        const data = await fetchPromise;
+        const loadedChecked = data.checked || {};
+        const loadedRevisions = data.revisions || {};
+        const loadedPriority = data.priority || {};
+        const loadedChapterNotes = data.chapterNotes || {};
+        const loadedSubjectNotes = data.subjectNotes || {};
+
+        lastSavedDataRef.current = JSON.stringify({
+          checked: loadedChecked,
+          revisions: loadedRevisions,
+          priority: loadedPriority,
+          chapterNotes: loadedChapterNotes,
+          subjectNotes: loadedSubjectNotes,
+        });
+
+        setChecked(loadedChecked);
+        setRevisions(loadedRevisions);
+        setPriority(loadedPriority);
+        setChapterNotes(loadedChapterNotes);
+        setSubjectNotes(loadedSubjectNotes);
       } catch (error) {
         console.warn("Unable to load saved progress:", error);
         setDbError(true);
+        fetchPromise = null;
       } finally {
         initialPersistRef.current = false;
       }
@@ -686,6 +708,18 @@ export default function App() {
   useEffect(() => {
     if (initialPersistRef.current) return;
 
+    const currentData = {
+      checked,
+      revisions,
+      priority,
+      chapterNotes,
+      subjectNotes,
+    };
+    const currentDataStr = JSON.stringify(currentData);
+    if (lastSavedDataRef.current === currentDataStr) return;
+
+    lastSavedDataRef.current = currentDataStr;
+
     const saveProgress = async () => {
       try {
         await fetch(PROGRESS_URL, {
@@ -693,11 +727,7 @@ export default function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             id: 1,
-            checked,
-            revisions,
-            priority,
-            chapterNotes,
-            subjectNotes,
+            ...currentData
           }),
         });
       } catch (error) {
@@ -993,7 +1023,7 @@ export default function App() {
           </div>
         </div>
 
-        <footer>— progress is kept for this session · export before you close the tab or move devices —</footer>
+        <footer>— progress is saved to the backend database (backend/db.json) and persists across sessions —</footer>
       </div>
 
       <div className={"modal-bg" + (modalOpen ? " open" : "")}>
