@@ -3,19 +3,15 @@
   "version": "1.0.0",
   "description": "JSON Server backend for NCERT Preparation Register — serves and persists progress data via REST API.",
   "private": true,
-  "type": "commonjs",
-  "main": "server.js",
   "scripts": {
-    "start": "json-server --watch db.json --port 3001",
-    "dev": "json-server --watch db.json --port 3001"
+    "start": "json-server --watch db.json --host 0.0.0.0 --port $PORT",
+    "dev": "json-server --watch db.json --host 0.0.0.0 --port 3001"
   },
   "dependencies": {
     "json-server": "^0.17.3"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
-  "keywords": ["json-server", "ncert", "upsc", "api"],
-  "author": "",
   "license": "MIT"
 }
